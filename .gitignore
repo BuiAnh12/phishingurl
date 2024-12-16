@@ -1,0 +1,7 @@
+# Ignore everything in the "model" directory
+model/
+
+# Ignore everything in the "dataset" directory
+dataset/
+
+dist

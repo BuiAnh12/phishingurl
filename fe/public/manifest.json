@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "Phishing Checker",
+  "version": "1.0.0",
+  "description": "Detect phishing URLs in the browser.",
+  "permissions": ["scripting", "activeTab"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "index.html",
+    "default_icon": "./extension-icon.png"
+  },
+  "icons": {
+    "48": "./extension-icon.png",
+    "128": "./extension-icon.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ]
+}
