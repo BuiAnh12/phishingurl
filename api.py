@@ -7,6 +7,7 @@ import os
 from processer.preprocess import URLProcessor 
 from processer.nlp_convert import NLP_Converter
 from flask_cors import CORS 
+from sklearn.preprocessing import StandardScaler
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # Suppress TensorFlow logs
 
@@ -16,8 +17,8 @@ app = Flask(__name__)
 CORS(app)
 
 # Load the pre-trained model
-cnn_model = load_model('./model/cnn_binary_classification_model_final.keras')
-ltsm_model = load_model('./model/ltsm_binary_classification_model_final.keras')
+cnn_model = load_model('./model/cnn_binary_classification_model_v2.keras')
+ltsm_model = load_model('./model/ltsm_binary_classification_model_v2.keras')
 # Initialize auxiliary components
 def init_processors():
     print("Loading the dataset and initializing processors...")
@@ -59,10 +60,10 @@ def cnn_predict(url):
 
         # Convert the extracted features into a DataFrame for model input
         feature_columns = [
-            "use_of_ip", "abnormal_url", "google_index", "count_dot", "count_www", "count_at",
-            "count_dir", "count_embed_domian", "short_url", "count_percent", "count_question",
-            "count_hyphen", "count_equals", "url_length", "hostname_length", "sus_url",
-            "count_digits", "count_letters"
+            'use_of_ip','abnormal_url','google_index', 'count.', 'count-www', 
+            'count@', 'count_dir', 'count_embed_domian', 'short_url', 'count%', 
+            'count?', 'count-', 'count=', 'url_length', 'hostname_length', 'sus_url', 
+            'count-digits', 'count-letters'
         ]
 
         features_df = pd.DataFrame([url_features], columns=feature_columns)
@@ -72,20 +73,14 @@ def cnn_predict(url):
         
         # Convert the NLP feature dictionary into a DataFrame
         nlp_features_df = pd.DataFrame([nlp_feature])
-
         # Combine the extracted features and NLP features
         combined_df = pd.concat([features_df, nlp_features_df], axis=1)
-
         # Make predictions
         predictions = cnn_model.predict(combined_df, verbose=0)
-        prediction_score = predictions[0][0]
+        print("PREDICTION", predictions)
+        y_pred_classes = (predictions > 0.5).astype(int)
 
-        # Determine label based on the threshold
-        threshold = 0.5
-        result = 0 if prediction_score > threshold else 1
-        print(f"CNN prediction_score: {prediction_score} - tag: {result} - url: {url} ")
-
-        return {"is_phishing": result, "model": "CNN"}
+        return {"is_phishing": int(y_pred_classes[0][0]), "model": "CNN"}
 
     except Exception as e:
         return {"error": str(e)}
@@ -101,10 +96,10 @@ def lstm_predict(url):
 
         # Convert the extracted features into a DataFrame for model input
         feature_columns = [
-            "use_of_ip", "abnormal_url", "google_index", "count_dot", "count_www", "count_at",
-            "count_dir", "count_embed_domian", "short_url", "count_percent", "count_question",
-            "count_hyphen", "count_equals", "url_length", "hostname_length", "sus_url",
-            "count_digits", "count_letters"
+            'use_of_ip','abnormal_url','google_index', 'count.', 'count-www', 
+            'count@', 'count_dir', 'count_embed_domian', 'short_url', 'count%', 
+            'count?', 'count-', 'count=', 'url_length', 'hostname_length', 'sus_url', 
+            'count-digits', 'count-letters'
         ]
 
         features_df = pd.DataFrame([url_features], columns=feature_columns)
@@ -114,20 +109,16 @@ def lstm_predict(url):
         
         # Convert the NLP feature dictionary into a DataFrame
         nlp_features_df = pd.DataFrame([nlp_feature])
-
         # Combine the extracted features and NLP features
         combined_df = pd.concat([features_df, nlp_features_df], axis=1)
 
         # Make predictions
         predictions = ltsm_model.predict(combined_df, verbose=0)
-        prediction_score = predictions[0][0]
+        print("PREDICTION", predictions)
+        y_pred_classes = (predictions > 0.5).astype(int)
 
-        # Determine label based on the threshold
-        threshold = 0.5
-        result = 0 if prediction_score > threshold else 1
-        print(f"LTSM prediction_score: {prediction_score} - tag: {result} - url: {url} ")
 
-        return {"is_phishing": result, "model": "LTSM"}
+        return {"is_phishing": int(y_pred_classes[0][0]), "model": "LTSM"}
 
     except Exception as e:
         return {"error": str(e)}
@@ -149,7 +140,7 @@ def predict():
     print(url, model)
     # Perform the prediction based on the selected model
     result = predict_phishing(url, model)
-    
+    print(result)
     # Return the result as a JSON response
     return jsonify(result)
 

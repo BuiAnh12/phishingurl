@@ -61,6 +61,9 @@ class URLProcessor:
             return 1 if hostname in url else 0
         except Exception:
             return 0
+    def no_of_embed(self,url):
+        urldir = urlparse(url).path
+        return urldir.count('//')
 
     def google_index(self, url):
         try:
@@ -70,7 +73,12 @@ class URLProcessor:
             return 0
 
     def count_character(self, url, char):
+        if not isinstance(url, str):
+            print(f"Invalid URL: {url}")
+            return 0
+        # print(f"Counting '{char}' in URL: {url}")
         return url.count(char)
+
 
     def url_length(self, url):
         return len(url)
@@ -117,20 +125,20 @@ class URLProcessor:
             "use_of_ip": self.having_ip_address(url),
             "abnormal_url": self.abnormal_url(url),
             "google_index": self.google_index(url),
-            "count_dot": self.count_character(url, "."),
-            "count_www": self.count_character(url, "www"),
-            "count_at": self.count_character(url, "@"),
+            "count.": self.count_character(url, "."),
+            "count-www": self.count_character(url, "www"),
+            "count@": self.count_character(url, "@"),
             "count_dir": self.count_character(urlparse(url).path, "/"),
-            "count_embed_domian": self.count_character(url, "//"),
+            "count_embed_domian": self.no_of_embed(url),
             "short_url": self.shortening_service(url),
-            "count_percent": self.count_character(url, "%"),
-            "count_question": self.count_character(url, "?"),
-            "count_hyphen": self.count_character(url, "-"),
-            "count_equals": self.count_character(url, "="),
+            "count%": self.count_character(url, "%"),
+            "count?": self.count_character(url, "?"),
+            "count-": self.count_character(url, "-"),
+            "count=": self.count_character(url, "="),
             "url_length": self.url_length(url),
             "hostname_length": self.hostname_length(url),
             "sus_url": self.suspicious_words(url),
-            "count_digits": self.digit_count(url),
-            "count_letters": self.letter_count(url),
+            "count-digits": self.digit_count(url),
+            "count-letters": self.letter_count(url),
         })
         return data
