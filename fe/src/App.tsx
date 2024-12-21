@@ -4,26 +4,30 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 
 export default function Popup() {
-  const [url, setUrl] = useState<string>("");
   const [status, setStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [manualUrl, setManualUrl] = useState<string>("");
   const [modelType, setModelType] = useState<string>("cnn");
   const backend_api = "http://127.0.0.1:5000";
 
-  // Listen for messages from background or content script
   useEffect(() => {
     if (typeof chrome !== "undefined" && chrome.runtime) {
       chrome.runtime.onMessage.addListener((message) => {
-        if (message.url) {
-          setUrl(message.url); // Set the current URL
-          checkUrl(message.url, modelType); // Automatically check the URL
+        if (message.status === "Phishing" && message.url) {
+          setStatus("Phishing");
+          setManualUrl(message.url);
+          alert(`Phishing detected for ${message.url}`);  // Optionally show an alert
         }
       });
     }
-  }, [modelType]);
+  }, []);
 
   const checkUrl = async (urlToCheck: string, model: string) => {
+    if (!urlToCheck || !/^https?:\/\/[^\s$.?#].[^\s]*$/.test(urlToCheck)) {
+      setStatus("Invalid URL.");
+      return;
+    }
+
     setLoading(true);
     try {
       const response = await axios.post(`${backend_api}/predict`, {
@@ -39,11 +43,10 @@ export default function Popup() {
     setLoading(false);
   };
 
+
   const handleSubmit = () => {
-    if (manualUrl) {
-      console.log(manualUrl)
-      console.log(modelType)
-      checkUrl(manualUrl, modelType);
+    if (manualUrl.trim()) {
+      checkUrl(manualUrl.trim(), modelType);
     } else {
       setStatus("Please enter a URL.");
     }
@@ -58,14 +61,6 @@ export default function Popup() {
       </header>
 
       <main className="mt-4">
-        {url && (
-          <div className="mb-4">
-            <p className="text-sm text-gray-700 dark:text-gray-300">
-              Current URL: <span className="font-medium text-blue-600">{url}</span>
-            </p>
-          </div>
-        )}
-
         <div className="mb-4">
           <input
             type="text"
@@ -103,13 +98,12 @@ export default function Popup() {
 
         {status && (
           <p
-            className={`mt-4 p-2 rounded text-white ${
-              status === "Phishing"
+            className={`mt-4 p-2 rounded text-white ${status === "Phishing"
                 ? "bg-red-500"
                 : status === "Safe"
-                ? "bg-green-500"
-                : "bg-yellow-500 text-black"
-            }`}
+                  ? "bg-green-500"
+                  : "bg-yellow-500 text-black"
+              }`}
           >
             {status}
           </p>
