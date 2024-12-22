@@ -8,15 +8,23 @@ export default function Popup() {
   const [loading, setLoading] = useState<boolean>(false);
   const [manualUrl, setManualUrl] = useState<string>("");
   const [modelType, setModelType] = useState<string>("cnn");
+  const [whitelist, setWhitelist] = useState<string[]>([]);
   const backend_api = "http://127.0.0.1:5000";
 
   useEffect(() => {
+    // Load whitelist from background script
+    chrome.runtime.sendMessage({ action: "getWhitelist" }, (response) => {
+      if (response && response.whitelist) {
+        setWhitelist(response.whitelist);
+      }
+    });
+
     if (typeof chrome !== "undefined" && chrome.runtime) {
       chrome.runtime.onMessage.addListener((message) => {
         if (message.status === "Phishing" && message.url) {
           setStatus("Phishing");
           setManualUrl(message.url);
-          alert(`Phishing detected for ${message.url}`);  // Optionally show an alert
+          alert(`Phishing detected for ${message.url}`); // Optionally show an alert
         }
       });
     }
@@ -43,13 +51,24 @@ export default function Popup() {
     setLoading(false);
   };
 
-
   const handleSubmit = () => {
     if (manualUrl.trim()) {
       checkUrl(manualUrl.trim(), modelType);
     } else {
       setStatus("Please enter a URL.");
     }
+  };
+
+  // Remove a URL from the whitelist
+  const removeUrl = (url: string) => {
+    chrome.runtime.sendMessage(
+      { action: "removeWhitelist", url },
+      (response) => {
+        if (response.success) {
+          setWhitelist((prev) => prev.filter((item) => item !== url));
+        }
+      }
+    );
   };
 
   return (
@@ -108,6 +127,33 @@ export default function Popup() {
             {status}
           </p>
         )}
+
+        {/* Whitelist Display */}
+        <div className="mt-6">
+          <h2 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            Whitelisted URLs
+          </h2>
+          <ul className="mt-2 space-y-2">
+            {whitelist.length > 0 ? (
+              whitelist.map((url, index) => (
+                <li
+                  key={index}
+                  className="flex items-center justify-between p-2 border border-gray-300 rounded dark:border-gray-600 dark:bg-gray-700"
+                >
+                  <span className="text-gray-700 dark:text-gray-300">{url}</span>
+                  <button
+                    className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
+                    onClick={() => removeUrl(url)}
+                  >
+                    Remove
+                  </button>
+                </li>
+              ))
+            ) : (
+              <li className="text-gray-500 dark:text-gray-400">No URLs whitelisted.</li>
+            )}
+          </ul>
+        </div>
       </main>
     </div>
   );

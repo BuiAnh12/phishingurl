@@ -1,8 +1,29 @@
 const backendApi = "http://127.0.0.1:5000";
-const phishingCache = new Map(); // To cache the result of URL checks
+const phishingCache = new Map(); // Cache for phishing checks
+let userWhitelist = new Set(); // User-approved URLs to skip rechecking
+
+// Load whitelist from local storage on startup
+function loadWhitelist() {
+  chrome.storage.local.get("whitelist", (result) => {
+    userWhitelist = new Set(result.whitelist || []);
+    console.log("Whitelist loaded:", userWhitelist);
+  });
+}
+
+// Save whitelist to local storage
+function saveWhitelist() {
+  chrome.storage.local.set({ whitelist: Array.from(userWhitelist) }, () => {
+    console.log("Whitelist saved:", userWhitelist);
+  });
+}
 
 // Function to check a URL
 async function checkUrl(url, tabId) {
+  if (userWhitelist.has(url)) {
+    console.log(`URL '${url}' is in the whitelist. Skipping phishing check.`);
+    return;
+  }
+
   if (phishingCache.has(url)) {
     const isPhishing = phishingCache.get(url);
     if (isPhishing) {
@@ -38,6 +59,23 @@ function showWarningPage(phishingUrl, tabId) {
   chrome.tabs.update(tabId, { url: `${warningPageUrl}?phishingUrl=${encodeURIComponent(phishingUrl)}` });
 }
 
+// Listen for messages from the phishing alert page or popup
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === "whitelist") {
+    console.log(`Adding URL '${message.url}' to whitelist.`);
+    userWhitelist.add(message.url);
+    saveWhitelist();
+    sendResponse({ success: true });
+  } else if (message.action === "removeWhitelist") {
+    console.log(`Removing URL '${message.url}' from whitelist.`);
+    userWhitelist.delete(message.url);
+    saveWhitelist();
+    sendResponse({ success: true });
+  } else if (message.action === "getWhitelist") {
+    sendResponse({ whitelist: Array.from(userWhitelist) });
+  }
+});
+
 // Listen for tab updates
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.url) {
@@ -45,3 +83,6 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     checkUrl(changeInfo.url, tabId);
   }
 });
+
+// Initialize by loading the whitelist
+loadWhitelist();

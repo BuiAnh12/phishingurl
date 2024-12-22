@@ -3,7 +3,8 @@
   "name": "Phishing Checker",
   "version": "1.0.0",
   "description": "Detect phishing URLs in the browser.",
-  "permissions": ["tabs", "notifications", "scripting", "activeTab"],
+  "permissions": ["tabs", "notifications", "scripting", "activeTab", "storage",
+    "webNavigation"],
   "host_permissions": ["<all_urls>"],
   "background": {
     "service_worker": "background.js"
