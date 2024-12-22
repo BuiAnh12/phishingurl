@@ -1,111 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Phishing Detected</title>
-    <style>
-      /* Resetting default margin and padding */
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phishing Detected</title>
+  <style>
+    /* Resetting default margin and padding */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-      /* Body styling */
-      body {
-        font-family: 'Arial', sans-serif;
-        background: linear-gradient(to right, #f8d7da, #f1b0b7);
-        color: #721c24;
-        padding: 30px;
-        text-align: center;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        overflow: hidden;
-      }
+    /* Body styling */
+    body {
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(to right, #f8d7da, #f1b0b7);
+      color: #721c24;
+      padding: 30px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
 
-      /* Heading Styling */
-      h1 {
-        color: #721c24;
-        font-size: 36px;
-        font-weight: bold;
-        margin-bottom: 20px;
-      }
+    /* Heading Styling */
+    h1 {
+      color: #721c24;
+      font-size: 36px;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
 
-      /* Paragraph Styling */
-      p {
-        font-size: 20px;
-        margin-bottom: 20px;
-      }
+    /* Paragraph Styling */
+    p {
+      font-size: 20px;
+      margin-bottom: 20px;
+    }
 
-      /* URL Styling */
-      .url {
-        font-weight: bold;
-        font-size: 18px;
-        color: #d9534f;
-        word-wrap: break-word;
-        margin: 10px 0;
-      }
+    /* URL Styling */
+    .url {
+      font-weight: bold;
+      font-size: 18px;
+      color: #d9534f;
+      word-wrap: break-word;
+      margin: 10px 0;
+    }
 
-      /* Button Styling */
-      .action-button {
-        background-color: #dc3545;
-        color: white;
-        padding: 12px 20px;
-        font-size: 16px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
-      }
+    /* Button Styling */
+    .action-button {
+      background-color: #dc3545;
+      color: white;
+      padding: 12px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
 
-      .action-button:hover {
-        background-color: #c82333;
-      }
+    .action-button:hover {
+      background-color: #c82333;
+    }
 
-      .icon {
-        font-size: 50px;
-        color: #721c24;
-        margin-bottom: 20px;
-      }
-
-      .container {
-        background: white;
-        padding: 30px;
-        border-radius: 10px;
-        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-        text-align: center;
-        width: 100%;
-        max-width: 400px;
-        margin: 0 auto;
-      }
-
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <div class="icon">
-        <i class="fas fa-exclamation-triangle"></i> <!-- You can add an icon -->
-      </div>
-      <h1>Phishing URL Detected!</h1>
-      <p>The URL has been flagged as phishing. Be cautious!</p>
-    </div>
-
-    <script>
-      // Get the URL passed from background script
-      chrome.runtime.onMessage.addListener((message) => {
-        if (message.status === "Phishing" && message.url) {
-          document.getElementById("url").textContent = message.url;
-        }
-      });
-
-      // Close the alert window when button is clicked
-      function closeWindow() {
-        window.close();
-      }
-    </script>
-  </body>
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      width: 100%;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Phishing URL Detected!</h1>
+    <p>The following URL has been flagged as phishing</p>
+    <p class="url" id="url"></p>
+    <button class="action-button" id="proceed-button">Proceed Anyway</button>
+  </div>
+  <script src="phishingAlert.js"></script>
+</body>
 </html>
